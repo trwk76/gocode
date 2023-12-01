@@ -89,6 +89,12 @@ func (w *Writer) WriteString(str string) (int, error) {
 	return res, nil
 }
 
+func (w *Writer) Indent(action func()) {
+	w.ind += 1
+	action()
+	w.ind -= 1
+}
+
 func (w *Writer) Space() error {
 	return w.WriteByte(' ')
 }
