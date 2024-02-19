@@ -1,6 +1,6 @@
 package golang
 
-import "gitlab.trwk.com/go/code"
+import code "github.com/trwk76/gocode"
 
 type (
 	Stmt interface {

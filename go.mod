@@ -1,4 +1,4 @@
-module gitlab.trwk.com/go/code
+module github.com/trwk76/gocode
 
 go 1.22
 
