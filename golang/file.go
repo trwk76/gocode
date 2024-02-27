@@ -33,9 +33,9 @@ func (f *File) Add(decl Decl) {
 	f.decls = append(f.decls, decl)
 }
 
-func (f *File) NamedType(name string, pkg string, args GenArgs) NamedType {
+func (f *File) NamedType(id ID, pkg string, args GenArgs) NamedType {
 	return NamedType{
-		Name: name,
+		ID:   id,
 		Pkg:  f.pkgAlias(pkg),
 		Args: args,
 	}
@@ -47,7 +47,7 @@ func (f *File) TypeOf(v any) Type {
 
 func (f *File) Type(t reflect.Type) Type {
 	if t.Name() != "" {
-		return f.NamedType(t.Name(), t.PkgPath(), nil)
+		return f.NamedType(ID(t.Name()), t.PkgPath(), nil)
 	}
 
 	switch t.Kind() {
@@ -106,7 +106,7 @@ func (f *File) Type(t reflect.Type) Type {
 			fld := t.Field(i)
 
 			flds = append(flds, Field{
-				Name: fld.Name,
+				ID:   ID(fld.Name),
 				Type: f.Type(fld.Type),
 				Tags: parseTags(string(fld.Tag)),
 			})
@@ -118,10 +118,10 @@ func (f *File) Type(t reflect.Type) Type {
 	panic(fmt.Errorf("type %v is not supported", t))
 }
 
-func (f *File) Symbol(name string, pkg string) SymbolExpr {
+func (f *File) Symbol(id ID, pkg string) SymbolExpr {
 	return SymbolExpr{
-		Name: name,
-		Pkg:  f.pkgAlias(pkg),
+		ID:  id,
+		Pkg: f.pkgAlias(pkg),
 	}
 }
 

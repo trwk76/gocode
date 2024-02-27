@@ -27,7 +27,7 @@ type (
 
 	TypeDecl struct {
 		Doc    Comment
-		Name   string
+		ID     ID
 		Params GenParams
 		Type   Type
 	}
@@ -35,7 +35,7 @@ type (
 	FuncDecl struct {
 		Doc       Comment
 		Rcv       Receiver
-		Name      string
+		ID        ID
 		GenParams GenParams
 		Params    Params
 		Return    Return
@@ -47,7 +47,7 @@ type (
 
 	VarDecl struct {
 		Doc   Comment
-		Name  string
+		ID    ID
 		Type  Type
 		Value Expr
 	}
@@ -55,7 +55,7 @@ type (
 	GenParams []GenParam
 
 	GenParam struct {
-		Name       string
+		ID         ID
 		Constraint TypeConst
 	}
 
@@ -64,7 +64,7 @@ type (
 	Return   []Param
 
 	Param struct {
-		Name string
+		ID   ID
 		Var  bool
 		Type Type
 	}
@@ -108,7 +108,7 @@ func (i ImportDecls) write(w *code.Writer) {
 			}
 		}
 
-		w.WriteString("import {")
+		w.WriteString("import (")
 		w.Newline()
 		w.Indent(func() {
 			tbl := code.Table{}
@@ -148,7 +148,7 @@ func (i TypeDecls) write(w *code.Writer) {
 	case 1:
 		i[0].Doc.write(w)
 		w.WriteString("type ")
-		w.WriteString(i[0].Name)
+		i[0].ID.write(w)
 		i[0].Params.write(w)
 		w.Space()
 		i[0].Type.write(w)
@@ -162,7 +162,7 @@ func (i TypeDecls) write(w *code.Writer) {
 				}
 
 				itm.Doc.write(w)
-				w.WriteString(itm.Name)
+				itm.ID.write(w)
 				itm.Params.write(w)
 				w.Space()
 				itm.Type.write(w)
@@ -191,7 +191,7 @@ func (i FuncDecl) write(w *code.Writer) {
 		w.WriteString(") ")
 	}
 
-	w.WriteString(i.Name)
+	i.ID.write(w)
 	i.GenParams.write(w)
 	i.Params.write(w)
 	i.Return.write(w)
@@ -220,7 +220,7 @@ func (i VarDecls) write(w *code.Writer) {
 	case 1:
 		i[0].Doc.write(w)
 		w.WriteString("var ")
-		w.WriteString(i[0].Name)
+		i[0].ID.write(w)
 		w.Space()
 		i[0].Type.write(w)
 
@@ -235,7 +235,7 @@ func (i VarDecls) write(w *code.Writer) {
 			tbl := code.Table{}
 
 			for _, itm := range i {
-				cols := []string{itm.Name, Render(itm.Type)}
+				cols := []string{Render(itm.ID), Render(itm.Type)}
 
 				if itm.Value != nil {
 					cols = append(cols, "= "+Render(itm.Value))
@@ -271,7 +271,7 @@ func (i ConstDecls) write(w *code.Writer) {
 	case 1:
 		i[0].Doc.write(w)
 		w.WriteString("const ")
-		w.WriteString(i[0].Name)
+		i[0].ID.write(w)
 		w.Space()
 		i[0].Type.write(w)
 
@@ -286,7 +286,7 @@ func (i ConstDecls) write(w *code.Writer) {
 			tbl := code.Table{}
 
 			for _, itm := range i {
-				cols := []string{itm.Name, Render(itm.Type)}
+				cols := []string{Render(itm.ID), Render(itm.Type)}
 
 				if itm.Value != nil {
 					cols = append(cols, "= "+Render(itm.Value))
@@ -328,7 +328,7 @@ func (p GenParams) write(w *code.Writer) {
 }
 
 func (p GenParam) write(w *code.Writer) {
-	w.WriteString(p.Name)
+	p.ID.write(w)
 	w.Space()
 	p.Constraint.write(w)
 }
@@ -374,7 +374,7 @@ func (p Return) write(w *code.Writer) {
 
 	w.Space()
 
-	if len(p) == 1 && p[0].Name == "" {
+	if len(p) == 1 && p[0].ID == "" {
 		p[0].Type.write(w)
 		return
 	}
@@ -393,7 +393,7 @@ func (p Return) write(w *code.Writer) {
 }
 
 func (i Param) write(w *code.Writer) {
-	w.WriteString(i.Name)
+	i.ID.write(w)
 
 	if i.Var {
 		w.WriteString("...")

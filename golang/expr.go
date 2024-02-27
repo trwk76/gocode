@@ -30,7 +30,7 @@ type (
 	StructExprFields []StructExprField
 
 	StructExprField struct {
-		Name  string
+		ID    ID
 		Value Expr
 	}
 
@@ -53,14 +53,14 @@ type (
 	}
 
 	SymbolExpr struct {
-		Name string
+		ID   ID
 		Pkg  string
 		Args GenArgs
 	}
 
 	MemberExpr struct {
 		Expr Expr
-		Name string
+		ID   ID
 	}
 
 	CallExpr struct {
@@ -120,7 +120,7 @@ var (
 	Nil    NilExpr    = NilExpr{}
 	False  BoolExpr   = BoolExpr(false)
 	True   BoolExpr   = BoolExpr(true)
-	Ignore SymbolExpr = SymbolExpr{Name: "_"}
+	Ignore SymbolExpr = SymbolExpr{ID: "_"}
 )
 
 func (e Exprs) simple() bool {
@@ -186,7 +186,7 @@ func (e StructExpr) write(w *code.Writer) {
 		w.Newline()
 		w.Indent(func() {
 			for _, itm := range e.Fields {
-				w.WriteString(itm.Name)
+				itm.ID.write(w)
 				w.WriteString(": ")
 				itm.Value.write(w)
 				w.WriteByte(',')
@@ -235,14 +235,14 @@ func (e SymbolExpr) write(w *code.Writer) {
 		w.WriteByte('.')
 	}
 
-	w.WriteString(e.Name)
+	e.ID.write(w)
 	e.Args.write(w)
 }
 
 func (e MemberExpr) write(w *code.Writer) {
 	e.Expr.write(w)
 	w.WriteByte('.')
-	w.WriteString(e.Name)
+	e.ID.write(w)
 }
 
 func (e CallExpr) write(w *code.Writer) {

@@ -14,7 +14,7 @@ type (
 
 	NamedType struct {
 		Pkg  string
-		Name string
+		ID   ID
 		Args GenArgs
 	}
 
@@ -52,7 +52,7 @@ type (
 
 	Field struct {
 		Doc  Comment
-		Name string
+		ID   ID
 		Type Type
 		Tags Tags
 	}
@@ -75,28 +75,28 @@ type (
 
 	InterfaceFunc struct {
 		FuncType
-		Name string
+		ID ID
 	}
 )
 
 var (
-	Any     NamedType = NamedType{Name: "any"}
-	Bool    NamedType = NamedType{Name: "bool"}
-	Byte    NamedType = NamedType{Name: "byte"}
-	Rune    NamedType = NamedType{Name: "rune"}
-	Int     NamedType = NamedType{Name: "int"}
-	Int8    NamedType = NamedType{Name: "int8"}
-	Int16   NamedType = NamedType{Name: "int16"}
-	Int32   NamedType = NamedType{Name: "int32"}
-	Int64   NamedType = NamedType{Name: "int64"}
-	Uint    NamedType = NamedType{Name: "uint"}
-	Uint8   NamedType = NamedType{Name: "uint8"}
-	Uint16  NamedType = NamedType{Name: "uint16"}
-	Uint32  NamedType = NamedType{Name: "uint32"}
-	Uint64  NamedType = NamedType{Name: "uint64"}
-	Float32 NamedType = NamedType{Name: "float32"}
-	Float64 NamedType = NamedType{Name: "float64"}
-	String  NamedType = NamedType{Name: "string"}
+	Any     NamedType = NamedType{ID: "any"}
+	Bool    NamedType = NamedType{ID: "bool"}
+	Byte    NamedType = NamedType{ID: "byte"}
+	Rune    NamedType = NamedType{ID: "rune"}
+	Int     NamedType = NamedType{ID: "int"}
+	Int8    NamedType = NamedType{ID: "int8"}
+	Int16   NamedType = NamedType{ID: "int16"}
+	Int32   NamedType = NamedType{ID: "int32"}
+	Int64   NamedType = NamedType{ID: "int64"}
+	Uint    NamedType = NamedType{ID: "uint"}
+	Uint8   NamedType = NamedType{ID: "uint8"}
+	Uint16  NamedType = NamedType{ID: "uint16"}
+	Uint32  NamedType = NamedType{ID: "uint32"}
+	Uint64  NamedType = NamedType{ID: "uint64"}
+	Float32 NamedType = NamedType{ID: "float32"}
+	Float64 NamedType = NamedType{ID: "float64"}
+	String  NamedType = NamedType{ID: "string"}
 )
 
 func (t NamedType) simpleType() bool {
@@ -109,7 +109,7 @@ func (t NamedType) write(w *code.Writer) {
 		w.WriteByte('.')
 	}
 
-	w.WriteString(t.Name)
+	t.ID.write(w)
 	t.Args.write(w)
 }
 
@@ -153,7 +153,7 @@ func (t StructType) simpleType() bool {
 }
 
 func (t StructType) write(w *code.Writer) {
-	w.WriteString("struct{")
+	w.WriteString("struct {")
 
 	if len(t.Fields) > 0 {
 		w.Newline()
@@ -161,7 +161,7 @@ func (t StructType) write(w *code.Writer) {
 			tbl := code.Table{}
 
 			for _, fld := range t.Fields {
-				col1 := fld.Name
+				col1 := Render(fld.ID)
 				col2 := Render(fld.Type)
 
 				if col1 == "" {
@@ -189,7 +189,7 @@ func (t InterfaceType) simpleType() bool {
 }
 
 func (t InterfaceType) write(w *code.Writer) {
-	w.WriteString("interface{")
+	w.WriteString("interface {")
 
 	if len(t.Consts) > 0 || len(t.Funcs) > 0 {
 		w.Newline()
@@ -295,7 +295,7 @@ func (i InterfaceFuncs) write(w *code.Writer) {
 }
 
 func (i InterfaceFunc) write(w *code.Writer) {
-	w.WriteString(i.Name)
+	i.ID.write(w)
 	i.Params.write(w)
 	i.Return.write(w)
 }
