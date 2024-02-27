@@ -2,15 +2,17 @@ package sql
 
 import (
 	"fmt"
-
-	code "github.com/trwk76/gocode"
 )
 
 var Postgres postgresDialect
 
-type postgresDialect struct{}
+type (
+	postgresDialect struct{
+		DialectBase
+	}
+)
 
-func (postgresDialect) WriteName(w *code.Writer, name Name) {
+func (postgresDialect) WriteName(w Writer, name Name) {
 	fmt.Fprintf(w, `"%s"`, name)
 }
 
