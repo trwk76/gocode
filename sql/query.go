@@ -29,7 +29,7 @@ type (
 		Joins    Joins
 		GroupBy  Exprs
 		OrderBy  OrderClauses
-		Where    Predicate
+		Where    Cond
 		Offset   uint64
 		Limit    uint64
 	}
@@ -57,7 +57,7 @@ type (
 		Type   JoinType
 		Source SelectSource
 		Alias  Name
-		On     Predicate
+		On     Cond
 	}
 
 	JoinType string
