@@ -3,7 +3,7 @@ package golang
 import (
 	"strings"
 
-	"gitlab.trwk.com/go/code"
+	code "github.com/trwk76/gocode"
 )
 
 type (
