@@ -161,20 +161,26 @@ func (t StructType) write(w *code.Writer) {
 			tbl := code.Table{}
 
 			for _, fld := range t.Fields {
+				cols := make([]string, 0)
 				col1 := Render(fld.ID)
 				col2 := Render(fld.Type)
+				col3 := Render(fld.Tags)
 
 				if col1 == "" {
-					col1 = col2
-					col2 = ""
+					cols = append(cols, col2)
+
+					if col3 != "" {
+						cols = append(cols, "", col3)
+					}
+				} else {
+					cols = append(cols, col1, col2)
+
+					if col3 != "" {
+						cols = append(cols, col3)
+					}
 				}
 
-				tbl.AddRow(
-					Render(fld.Doc),
-					col1,
-					col2,
-					Render(fld.Tags),
-				)
+				tbl.AddRow(Render(fld.Doc), cols...)
 			}
 
 			tbl.Write(w)
