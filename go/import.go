@@ -2,10 +2,6 @@ package golang
 
 import (
 	"fmt"
-	"go/token"
-	"os"
-	"path/filepath"
-	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -13,31 +9,81 @@ import (
 	code "github.com/trwk76/gocode"
 )
 
-type (
-	Imports []Import
-
-	Import struct {
-		comm  string
-		alias string
-		path  string
+func (i Imports) PkgPath(alias Identifier) string {
+	for _, itm := range i {
+		if itm.alias == alias {
+			return itm.path
+		}
 	}
-)
 
-func (i *Imports) Ensure(pkgPath string, alias string, comment string) Import {
+	return ""
+}
+
+func (i *Imports) Ensure(alias Identifier, pkgPath string, comment string) Pkg {
 	if !isImportAlias(alias) {
 		panic(fmt.Errorf("'%s' is not a valid package alias", alias))
 	}
 
 	alias = i.uniqueAlias(alias)
 
-	res := Import{
-		comm:      comment,
-		alias:     alias,
-		path:      pkgPath,
+	res := Pkg{
+		comm:  comment,
+		alias: alias,
+		path:  pkgPath,
 	}
 
 	*i = append(*i, res)
 	return res
+}
+
+func (p Pkg) NamedType(id Identifier, args ...Type) NamedType {
+	if p.alias == Discard {
+		panic(fmt.Errorf("package '%s' is implicitely imported using _", p.path))
+	} else if !id.Exported() {
+		panic(fmt.Errorf("cannot reference a non-exported type from package '%s'", p.path))
+	}
+
+	return NamedType{pkg: p.alias, id: id, args: args}
+}
+
+func (p Pkg) Symbol(id Identifier, args ...Type) SymbolExpr {
+	if p.alias == Discard {
+		panic(fmt.Errorf("package '%s' is implicitely imported using _", p.path))
+	} else if !id.Exported() {
+		panic(fmt.Errorf("cannot reference a non-exported symbol from package '%s'", p.path))
+	}
+
+	return SymbolExpr{pkg: p.alias, id: id, args: args}
+}
+
+type (
+	Imports []Pkg
+
+	Pkg struct {
+		comm  string
+		alias Identifier
+		path  string
+	}
+)
+
+func (i Imports) uniqueAlias(base Identifier) Identifier {
+	if base == Discard {
+		return base
+	}
+
+	if i.PkgPath(base) == "" {
+		return base
+	}
+
+	idx := 1
+	alias := Identifier(fmt.Sprintf("%s%d", base, idx))
+
+	for i.PkgPath(alias) != "" {
+		idx++
+		alias = Identifier(fmt.Sprintf("%s%d", base, idx))
+	}
+
+	return alias
 }
 
 func (i Imports) write(w *code.Writer) {
@@ -50,7 +96,7 @@ func (i Imports) write(w *code.Writer) {
 		}
 
 		w.WriteString("import ")
-		w.WriteString(i[0].alias)
+		i[0].alias.write(w)
 		w.Space()
 		w.WriteString(strconv.Quote(i[0].path))
 		w.Newline()
@@ -91,11 +137,11 @@ func (i Imports) write(w *code.Writer) {
 	w.Newline()
 }
 
-func (i Import) row() code.Row {
+func (i Pkg) row() code.Row {
 	var res code.Row
 
 	res.Prefix = commentRenderer(i.comm)
-	res.Cols = []string{i.alias, strconv.Quote(i.path)}
+	res.Cols = []string{string(i.alias), strconv.Quote(i.path)}
 
 	return res
 }
@@ -104,10 +150,6 @@ func isSysPkg(path string) bool {
 	return !strings.ContainsAny(path, ".")
 }
 
-func isImportAlias(alias string) bool {
-	if alias == "_" {
-		return true
-	}
-
-	return token.IsIdentifier(alias) && !token.IsExported(alias)
+func isImportAlias(alias Identifier) bool {
+	return !alias.Exported()
 }

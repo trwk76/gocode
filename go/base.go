@@ -1,46 +1,50 @@
 package golang
 
 import (
+	"fmt"
+	"go/token"
 	"strings"
 
 	code "github.com/trwk76/gocode"
 )
 
-type (
-	item interface {
-		spaceAfter() bool
-		write(w *code.Writer)
+func ID(id string) Identifier {
+	if !token.IsIdentifier(id) {
+		panic(fmt.Errorf("'%s' is not a valid identifier", id))
 	}
 
-	row interface {
-		row() code.Row
-	}
-
-	items[T item] []T
-	rows[T row]   []T
-)
-
-func (r items[T]) write(w *code.Writer) {
-	prvSpaceAfter := false
-
-	for _, itm := range r {
-		if prvSpaceAfter {
-			w.Newline()
-		}
-
-		itm.write(w)
-		prvSpaceAfter = itm.spaceAfter()
-	}
+	return Identifier(id)
 }
 
-func (r rows[T]) write(w *code.Writer) {
-	rows := make([]code.Row, len(r))
+func (i Identifier) Exported() bool {
+	return token.IsExported(string(i))
+}
 
-	for idx, itm := range r {
-		rows[idx] = itm.row()
+var Discard Identifier = Identifier("_")
+
+type (
+	Identifier string
+	Comment    string
+
+	item interface {
+		write(w *code.Writer)
+	}
+)
+
+func (i Identifier) write(w *code.Writer) {
+	w.WriteString(string(i))
+}
+
+func (c Comment) write(w *code.Writer) {
+	if len(c) < 1 {
+		return
 	}
 
-	w.Table(rows...)
+	for _, line := range strings.Split(string(c), "\n") {
+		w.WriteString("// ")
+		w.WriteString(line)
+		w.Newline()
+	}
 }
 
 func commentRenderer(text string) code.Renderer {
