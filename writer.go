@@ -33,9 +33,11 @@ type (
 	}
 
 	Row struct {
-		Prefix string
+		Prefix Renderer
 		Cols   []string
 	}
+
+	Renderer func(w *Writer)
 )
 
 func (w *Writer) Close() {
@@ -126,8 +128,8 @@ func (w *Writer) Table(rows ...Row) {
 	pad := strings.Repeat(" ", maxw)
 
 	for _, row := range rows {
-		if row.Prefix != "" {
-			w.WriteString(row.Prefix)
+		if row.Prefix != nil {
+			row.Prefix(w)
 		}
 
 		for idx, col := range row.Cols {
@@ -137,8 +139,8 @@ func (w *Writer) Table(rows ...Row) {
 
 			w.WriteString(col)
 
-			if idx < len(row.Cols) - 1 {
-				w.WriteString(pad[:colw[idx] - len(col)])
+			if idx < len(row.Cols)-1 {
+				w.WriteString(pad[:colw[idx]-len(col)])
 			}
 		}
 
