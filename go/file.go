@@ -21,6 +21,7 @@ type (
 		comms   []Comment
 		pkgName Identifier
 		imps    Imports
+		decls   []Decl
 	}
 )
 
@@ -41,4 +42,9 @@ func (f *File) Write(w *code.Writer) {
 	}
 
 	fmt.Fprintf(w, "package %s\n\n", f.pkgName)
+
+	for _, decl := range f.decls {
+		decl.write(w)
+		w.Newline()
+	}
 }
