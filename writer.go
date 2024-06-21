@@ -24,6 +24,18 @@ func NewWriter(w io.Writer, tab string) *Writer {
 	}
 }
 
+func String(f func(w *Writer)) string {
+	buf := strings.Builder{}
+	w := NewWriter(&buf, "")
+
+	if f != nil {
+		f(w)
+	}
+
+	w.Close()
+	return buf.String()
+}
+
 type (
 	Writer struct {
 		w   *bufio.Writer

@@ -27,24 +27,38 @@ type (
 	Comment    string
 
 	item interface {
-		write(w *code.Writer)
+		write(w *code.Writer, line bool)
 	}
 )
 
-func (i Identifier) write(w *code.Writer) {
+func (i Identifier) write(w *code.Writer, line bool) {
 	w.WriteString(string(i))
 }
 
-func (c Comment) write(w *code.Writer) {
+func (c Comment) write(w *code.Writer, line bool) {
 	if len(c) < 1 {
 		return
 	}
 
-	for _, line := range strings.Split(string(c), "\n") {
-		w.WriteString("// ")
-		w.WriteString(line)
-		w.Newline()
+	if line {
+		w.WriteString("/* ")
+		w.WriteString(strings.ReplaceAll(string(c), "\n", " "))
+		w.WriteString(" */")
+	} else {
+		for _, line := range strings.Split(string(c), "\n") {
+			w.WriteString("// ")
+			w.WriteString(line)
+			w.Newline()
+		}
 	}
+}
+
+func renderLine(items ...item) string {
+	return code.String(func(w *code.Writer) {
+		for _, itm := range items {
+			itm.write(w, true)
+		}
+	})
 }
 
 func commentRenderer(text string) code.Renderer {

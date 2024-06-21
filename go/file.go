@@ -21,7 +21,7 @@ type (
 		comms   []Comment
 		pkgName Identifier
 		imps    Imports
-		decls   []Decl
+		decls   []decls
 	}
 )
 
